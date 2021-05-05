@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Задачи{% endblock title %}
+
+{% block content %}
+    <div class="container-fluid main-content alert">
+        <div class="row justify-content-center">
+            <h1 class="text-center">Задачи</h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-fluid main-content form">
+        {% if form.errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {% for value in form.errors.values %}
+                    {% autoescape off %}
+                        {{ value }}
+                    {% endautoescape %}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
+        <form class="row activities-form form-inline justify-content-center" name="add_task_form">
+            {% csrf_token %}
+            <div class="col-xl-4 form-group">
+                {{ form.title }}
+            </div>
+            <div class="col-sm-6 col-xl-1 form-group">
+                {{ form.project }}
+            </div>
+            <div class="col-sm-6 col-xl-1 form-group">
+                {{ form.activity }}
+            </div>
+            <div class="col-sm-6 col-xl-1 form-group">
+                {{ form.start }}
+            </div>
+            <div class="col-sm-6 col-xl-1 form-group">
+                {{ form.end }}
+            </div>
+            <div class="col-sm-6 col-xl-2 form-group">
+                {{ form.date }}
+            </div>
+            <div class="col-sm-6 col-xl-1 form-group">
+                {{ form.duration }}
+            </div>
+            <div class="col-xl-1 form-group">
+                <button type="submit" class="btn btn-outline-success">Добавить</button>
+            </div>
+        </form>
+
+    </div>
+
+    <div class="container-fluid main-content table-content">
+        <table class="table tasks-table">
+            <thead class="table-light">
+                <tr>
+                    {% for field in fields %}
+                        <th scope="col">{{ field.verbose_name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>
+                            {% if task.project %}
+                                {{ task.project }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.activity %}
+                                {{ task.activity }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ task.start }}</td>
+                        <td>{{ task.end }}</td>
+                        <td>{{ task.date|date:"SHORT_DATE_FORMAT" }}</td>
+                        <td>{{ task.duration }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="row">
+            {{ html_pagination }}
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    <script src="{% static 'js/tasks.js' %}"></script>
+{% endblock scripts %}

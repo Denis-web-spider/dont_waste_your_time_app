@@ -1,0 +1,68 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}Second base template{% endblock title %}
+
+{% block _content %}
+    <!-- navbar -->
+    <header>
+      <span class="menu"><i class="bi bi-list"></i></span>
+    </header>
+    <section class="main">
+      <aside class="keep">
+        <ul>
+          <li>
+            <a class="stretched-link" href="{% url 'user_account' %}">
+              <span><i class="bi bi-person-fill"></i></span>
+                <span class="menu-item-text">Аккаунт</span>
+              <span class="notif red">1</span>
+            </a>
+          </li>
+          <li>
+            <a class="stretched-link" href="{% url 'activities' %}">
+              <span><i class="bi bi-filter-square-fill"></i></span>
+                <span class="menu-item-text">Виды деятельности</span>
+              <span class="notif red">1</span>
+            </a>
+          </li><li>
+            <a class="stretched-link" href="{% url 'projects' %}">
+              <span><i class="bi bi-newspaper"></i></span>
+                <span class="menu-item-text">Проекты</span>
+              <span class="notif red">1</span>
+            </a>
+          </li><li>
+            <a class="stretched-link" href="{% url 'tasks' %}">
+              <span><i class="bi bi-list-check"></i></span>
+                <span class="menu-item-text">Задачи</span>
+              <span class="notif red">1</span>
+            </a>
+          </li><li>
+            <a class="stretched-link" href="/">
+              <span><i class="bi bi-house-fill"></i></span>
+                <span class="menu-item-text">Главная</span>
+              <span class="notif red">1</span>
+            </a>
+          </li><li>
+            <a class="stretched-link" href="/">
+              <span><i class="bi bi-house-fill"></i></span>
+                <span class="menu-item-text">Главная</span>
+              <span class="notif red">1</span>
+            </a>
+          </li>
+        </ul>
+      </aside>
+    </section>
+    <!-- End navbar -->
+
+    <div class="container-fluid main-section">
+        {% block content %}
+        {% endblock content %}
+    </div>
+{% endblock _content %}
+
+{% block script %}
+  <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+  {% block scripts %}
+  {% endblock scripts %}
+{% endblock script %}

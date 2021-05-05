@@ -1,0 +1,17 @@
+{% extends '_base.html' %}
+
+{% block title %}Не авторизириван{% endblock title %}
+
+{% block _content %}
+    <div class="container">
+        <div class="row align-items-center justify-content-center" style="height: 600px;">
+            <div class="col-md-4 standard-form">
+                <h1 class="text-center">{{ title }}</h1>
+                <p class="text-center">Благодарим вас за время, проведенное на этом сайте.</p>
+                <div class="text-center">
+                    <a href="{% url 'login' %}">Войти снова</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock _content %}
