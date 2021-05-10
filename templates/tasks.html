@@ -63,6 +63,88 @@
     </div>
 
     <div class="container-fluid main-content table-content">
+        <div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Задача</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row mb-3">
+                                <label for="{{ form.title.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.title.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.title }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.project.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.project.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.project }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.activity.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.activity.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.activity }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.start.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.start.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.start }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.end.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.end.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.end }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.date.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.date.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.date }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.duration.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ form.duration.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ form.duration }}
+                                </div>
+                            </div>
+                            <input type="hidden" name="task_id" value="">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-action="delete">Удалить</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="margin-left: auto;">Закрыть</button>
+                        <button type="button" class="btn btn-primary" data-action="patch">Сохранить</button>
+                    </div>
+                </div>
+          </div>
+        </div>
         <table class="table tasks-table">
             <thead class="table-light">
                 <tr>
@@ -73,7 +155,17 @@
             </thead>
             <tbody>
                 {% for task in tasks %}
-                    <tr>
+                    <tr data-task_id="{{ task.id }}"
+                        data-project="{{ task.project }}"
+                        data-activity="{{ task.activity }}"
+                        data-title="{{ task.title }}"
+                        data-start="{{ task.start|time:'H:i' }}"
+                        data-end="{{ task.end|time:'H:i' }}"
+                        data-date="{{ task.date|date:'Y-m-d' }}"
+                        data-duration="{{ task.duration|time:'H:i' }}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#task-modal"
+                    >
                         <td>{{ task.title }}</td>
                         <td>
                             {% if task.project %}

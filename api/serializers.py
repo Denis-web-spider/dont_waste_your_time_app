@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 
 from main.models import Projects, Activities, Tasks
 from main.templatetags.projects import status
+from main.templatetags.duration import duration_time_format
 
 class ProjectsSerializer(serializers.ModelSerializer):
 
@@ -29,6 +30,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TasksSerializer(serializers.ModelSerializer):
+    task_id = serializers.IntegerField(required=False)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -50,8 +52,9 @@ class TasksSerializer(serializers.ModelSerializer):
         end = data['end']
         date = data['date']
         user = data['user']
+        current_task_id = int(data.get('task_id', 0))
 
-        valid, task_in_that_time = Tasks.objects.is_task_in_free_time(start, end, date, user)
+        valid, task_in_that_time = Tasks.objects.is_task_in_free_time(start, end, date, user, current_task_id=current_task_id)
         if not valid:
             raise ValidationError(_('Данное время занято') + f' {task_in_that_time.title}')
         return data
@@ -70,7 +73,7 @@ class ActivitiesSerializer(serializers.ModelSerializer):
         else:
             ret['parent'] = '-'
 
-        ret['total_time'] = ret['total_time'][1:]
+        ret['total_time'] = duration_time_format(ret['total_time'])
 
         return ret
 

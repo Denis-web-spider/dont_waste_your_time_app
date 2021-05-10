@@ -2,6 +2,7 @@
 
 {% load projects %}
 {% load static %}
+{% load duration %}
 
 {% block title %}Проекты{% endblock title %}
 
@@ -47,6 +48,52 @@
     </div>
 
     <div class="container-fluid main-content table-content">
+        <div class="modal fade" id="project-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Проект</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row mb-3">
+                                <label for="{{ change_form.title.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ change_form.title.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ change_form.title }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ change_form.activity.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ change_form.activity.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ change_form.activity }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ change_form.status.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ change_form.status.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ change_form.status }}
+                                </div>
+                            </div>
+                            <input type="hidden" name="project_id" value="">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-action="delete">Удалить</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="margin-left: auto;">Закрыть</button>
+                        <button type="button" class="btn btn-primary" data-action="patch">Сохранить</button>
+                    </div>
+                </div>
+          </div>
+        </div>
         <table class="table projects-table">
             <thead class="table-light">
                 <tr>
@@ -57,7 +104,13 @@
             </thead>
             <tbody>
                 {% for project in projects %}
-                    <tr>
+                    <tr data-project_id="{{ project.id }}"
+                        data-activity="{{ project.activity }}"
+                        data-title="{{ project.title }}"
+                        data-status="{{ project.status }}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#project-modal"
+                    >
                         <td>{{ project.title }}</td>
                         <td>{{ project.status|status }}</td>
                         <td>
@@ -67,7 +120,7 @@
                                 -
                             {% endif %}
                         </td>
-                        <td>{{ project.total_time }}</td>
+                        <td>{{ project.total_time|duration_time_format }}</td>
                         <td>{{ project.created|date:"SHORT_DATETIME_FORMAT" }}</td>
                         <td>
                             {% if project.finished %}

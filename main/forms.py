@@ -21,26 +21,24 @@ class DivErrorList(ErrorList):
 
 class ActivitiesForm(forms.ModelForm):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['parent'].queryset = Activities.objects.activities(user=user)
+
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs.update({
+                'class': 'form-control form-control-lg',
+                'data-bs-toggle': 'tooltip',
+                'data-bs-placement': 'bottom',
+                'title': self.fields[field_name].label,
+                'placeholder': self.fields[field_name].label,
+            })
+
         self.fields['color'].widget = forms.TextInput(attrs={
             'type': 'color',
             'class': 'form-control form-control-lg form-control-color',
         })
-        self.fields['title'].widget.attrs.update({
-            'placeholder': self.fields['title'].label,
-            'class': 'form-control form-control-lg',
-        })
-        self.fields['parent'].widget.attrs.update({
-            'class': 'form-control form-control-lg',
-        })
-
-        for field_name in self.fields:
-            self.fields[field_name].widget.attrs.update({
-                'data-bs-toggle': 'tooltip',
-                'data-bs-placement': 'bottom',
-                'title': self.fields[field_name].label,
-            })
 
     class Meta:
         model = Activities
@@ -50,26 +48,41 @@ class ProjectsForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['title'].widget.attrs.update({
-            'placeholder': self.fields['title'].label,
-            'class': 'form-control form-control-lg',
-        })
 
-        self.fields['activity'].widget.attrs.update({
-            'class': 'form-control form-control-lg',
-        })
         self.fields['activity'].queryset = Activities.objects.activities(user=user)
 
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({
+                'class': 'form-control form-control-lg',
                 'data-bs-toggle': 'tooltip',
                 'data-bs-placement': 'bottom',
                 'title': self.fields[field_name].label,
+                'placeholder': self.fields[field_name].label,
             })
 
     class Meta:
         model = Projects
         fields = ['title', 'activity']
+
+class ChangeProjectForm(forms.ModelForm):
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['activity'].queryset = Activities.objects.activities(user=user)
+
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs.update({
+                'class': 'form-control form-control-lg',
+                'data-bs-toggle': 'tooltip',
+                'data-bs-placement': 'bottom',
+                'title': self.fields[field_name].label,
+                'placeholder': self.fields[field_name].label,
+            })
+
+    class Meta:
+        model = Projects
+        fields = ['title', 'status', 'activity']
 
 class TasksForm(forms.ModelForm):
 
@@ -102,7 +115,15 @@ class TasksForm(forms.ModelForm):
 
     class Meta:
         model = Tasks
-        fields = ['title', 'project', 'activity', 'start', 'end', 'date', 'duration']
+        fields = [
+            'title',
+            'project',
+            'activity',
+            'start',
+            'end',
+            'date',
+            'duration'
+        ]
 
     def clean(self):
         cleaned_data = super().clean()

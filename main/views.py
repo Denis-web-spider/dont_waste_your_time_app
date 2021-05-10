@@ -1,14 +1,13 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render
 
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils.translation import gettext as _
-from django.contrib import messages
 from django.core.paginator import Paginator
 
 from .forms import (
     ActivitiesForm,
     ProjectsForm,
+    ChangeProjectForm,
     TasksForm,
 )
 from .models import Activities, Projects, Tasks
@@ -31,7 +30,7 @@ class HomePageView(View):
 
 class ActivitiesView(LoginRequiredMixin, View):
     def get(self, request):
-        form = ActivitiesForm()
+        form = ActivitiesForm(request.user)
         activities_html_list = activities_list(request.user)
         activities = Activities.objects.activities(request.user)
 
@@ -63,38 +62,12 @@ class ActivitiesView(LoginRequiredMixin, View):
 
         return render(request, 'activities.html', context)
 
-    def post(self, request):
-        logger.debug(f'request.POST: {request.POST}')
-        user = request.user
-        activities = activities_list(user)
-
-        form = ActivitiesForm(request.POST)
-        if form.is_valid():
-            logger.debug(f'Form is valid, form.cleaned_data: {form.cleaned_data}')
-
-            Activities.objects.create(
-                title=form.cleaned_data['title'],
-                color=form.cleaned_data['color'],
-                parent=form.cleaned_data['parent'],
-                user=user
-            )
-
-            messages.success(request, _(f'Вид деятельности "{form.cleaned_data["title"]}" успешно добавлен'))
-            return redirect(reverse('activities'))
-        else:
-            logger.debug(f'Form is not valid, form.errors: {form.errors}')
-
-        context = {
-            'form': form,
-            'activities': activities
-        }
-        return render(request, 'activities.html', context)
-
 class ProjectsView(LoginRequiredMixin, View):
 
     def get(self, request):
         user = request.user
         form = ProjectsForm(user)
+        change_form = ChangeProjectForm(user)
         projects = Projects.objects.projects(user)
         fields = Projects._meta.get_fields()
         exclude_fields = [
@@ -114,6 +87,7 @@ class ProjectsView(LoginRequiredMixin, View):
 
         context = {
             'form': form,
+            'change_form': change_form,
             'projects': page,
             'fields': fields,
             'html_pagination': html_pagination,

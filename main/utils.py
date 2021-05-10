@@ -4,11 +4,38 @@ from django.shortcuts import reverse
 
 def get_childs_if_node_is_parent_else_return_node(node, user):
     if not node.childs.filter(user=user):
-        return f'<li data-color="{node.color}" style="color: {node.color}">{node.title}</li>'
+        return f'''<li 
+                        data-color="{node.color}" style="color: {node.color}"
+                        data-activity_id="{node.id}"
+                        data-title="{node.title}"
+                        data-parent="{node.parent}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#activity-modal"
+                    >
+                    {node.title}
+                    </li>'''
     if not node.childs.filter(user=user) and node.number == node.parent.childs.filter(user=user).count():
-        return f'<li data-color="{node.color}" style="color: {node.color}">{node.title}</li></ul>'
+        return f'''<li 
+                        data-color="{node.color}" style="color: {node.color}"
+                        data-activity_id="{node.id}"
+                        data-title="{node.title}"
+                        data-parent="{node.parent}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#activity-modal"
+                    >
+                    {node.title}
+                    </li></ul>'''
     else:
-        return f'''<li data-color="{node.color}" style="color: {node.color}">{node.title}</li><ul>''' + ''.join([get_childs_if_node_is_parent_else_return_node(child_node, user) for child_node in node.childs.filter(user=user)]) + '</ul>'
+        return f'''<li 
+                        data-color="{node.color}" style="color: {node.color}"
+                        data-activity_id="{node.id}"
+                        data-title="{node.title}"
+                        data-parent="{node.parent}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#activity-modal"
+                    >
+                    {node.title}
+                    </li><ul>''' + ''.join([get_childs_if_node_is_parent_else_return_node(child_node, user) for child_node in node.childs.filter(user=user)]) + '</ul>'
 
 def activities_list(user):
     basic_activities = Activities.objects.filter(user=user, parent=None)

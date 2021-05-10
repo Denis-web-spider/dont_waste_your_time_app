@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load duration %}
 
 {% block title %}Виды деятельности{% endblock title %}
 
@@ -44,6 +45,53 @@
             {% endfor %}
         {% endif %}
 
+        <div class="modal fade" id="activity-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Вид деятельности</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row mb-3">
+                                <label for="{{ form.title.id_form_label }}" class="col-sm-5 col-form-label">
+                                    {{ form.title.label }}
+                                </label>
+                                <div class="col-sm-7">
+                                    {{ form.title }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.color.id_form_label }}" class="col-sm-5 col-form-label">
+                                    {{ form.color.label }}
+                                </label>
+                                <div class="col-sm-7">
+                                    {{ form.color }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ form.parent.id_form_label }}" class="col-sm-5 col-form-label">
+                                    {{ form.parent.label }}
+                                </label>
+                                <div class="col-sm-7">
+                                    {{ form.parent }}
+                                </div>
+                            </div>
+                            <input type="hidden" name="activity_id" value="">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-action="delete">Удалить</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="margin-left: auto;">Закрыть</button>
+                        <button type="button" class="btn btn-primary" data-action="patch">Сохранить</button>
+                    </div>
+                </div>
+          </div>
+        </div>
+
         <div class="row justify-content-center activities-list">
             {% for branch in activities_html_list %}
                 <div class="col-lg-3">{{ branch }}</div>
@@ -51,7 +99,7 @@
         </div>
 
         <div class="row">
-            <table class="table activities-table">
+            <table class="table activities-table table-content">
                 <thead class="table-light">
                     <tr>
                         {% for field in fields %}
@@ -61,7 +109,13 @@
                 </thead>
                 <tbody>
                     {% for activity in activities %}
-                        <tr>
+                        <tr data-activity_id="{{ activity.id }}"
+                            data-title="{{ activity.title }}"
+                            data-color="{{ activity.color }}"
+                            data-parent="{{ activity.parent }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#activity-modal"
+                        >
                             <td>{{ activity.title }}</td>
                             <td>
                                 <div class="color-square" style="background-color: {{ activity.color }};"></div>
@@ -73,7 +127,7 @@
                                     -
                                 {% endif %}
                             </td>
-                            <td>{{ activity.total_time}}</td>
+                            <td>{{ activity.total_time|duration_time_format }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

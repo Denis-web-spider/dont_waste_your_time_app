@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.deconstruct import deconstructible
+from django.utils import timezone
 
 from datetime import date, time, datetime, timedelta
 
@@ -9,8 +10,27 @@ User = get_user_model()
 
 class ActivitiesManager(models.Manager):
 
+    def return_all_activity_childs(self, activity):
+        if activity.is_parent:
+            return [activity] + [self.return_all_activity_childs(child_activity) for child_activity in activity.childs.all()]
+        else:
+            return activity
+
+    def return_one_list_from_many_nested(self, nested_list, target_list):
+        if isinstance(nested_list, list):
+            [self.return_one_list_from_many_nested(item, target_list) for item in nested_list]
+        else:
+             target_list.append(nested_list)
+
     def activities(self, user):
-        return self.get_queryset().filter(user=user)
+        result_list = []
+        for parent in self.get_queryset().filter(user=user).order_by('parent').filter(parent=None):
+            self.return_one_list_from_many_nested(self.return_all_activity_childs(parent), result_list)
+        result_list = list(map(lambda activity: activity.id, result_list))
+        result_list = list(map(lambda activity_id: self.get_queryset().filter(id=activity_id), result_list))
+
+        return self.none().union(*result_list)
+
 
 @deconstructible
 class Activities(models.Model):
@@ -24,30 +44,55 @@ class Activities(models.Model):
 
     objects = ActivitiesManager()
 
+    original_parent = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_parent = self.parent
+
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
+        if list(self.childs.all()):
+            self.is_parent = True
+        else:
+            self.is_parent = False
         if self.parent:
-            self.parent.is_parent = True
-            self.parent.save()
-
             if self in self.parent.childs.all():
                 self.number = self.parent.childs.count()
             else:
                 self.number = self.parent.childs.count() + 1
 
         super().save(*args, **kwargs)
+        if self.parent:
+            self.parent.calculate_total_time()
+        if self.parent != self.original_parent:
+            if self.original_parent:
+                self.original_parent.calculate_total_time()
+            self.original_parent = self.parent
+
+    def delete(self, *args, **kwargs):
+        parent = None
+        if self.parent:
+            parent = self.parent
+        super().delete(*args, **kwargs)
+        parent.calculate_total_time()
 
     def calculate_total_time(self):
         tasks = self.tasks.all()
 
+        self.total_time = timedelta()
         for task in tasks:
             self.total_time += timedelta(
                 hours=task.duration.hour,
                 minutes=task.duration.minute,
                 seconds=task.duration.second,
             )
+
+        childs = self.childs.all()
+        for child in childs:
+            self.total_time += child.total_time
 
         self.save()
 
@@ -80,8 +125,17 @@ class Projects(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        if self.status == self.FINISHED:
+            self.finished = timezone.now()
+        else:
+            self.finished = None
+        super().save(*args, **kwargs)
+
     def calculate_total_time(self):
         tasks = self.tasks.all()
+
+        self.total_time = timedelta()
 
         for task in tasks:
             self.total_time += timedelta(
@@ -102,10 +156,13 @@ class TasksManager(models.Manager):
     def tasks(self, user):
         return self.get_queryset().filter(user=user)
 
-    def is_task_in_free_time(self, start: time, end: time, task_date: date, user):
+    def is_task_in_free_time(self, start: time, end: time, task_date: date, user, current_task_id=0):
         previous_day = date(year=task_date.year, month=task_date.month, day=task_date.day - 1)
         tasks = self.tasks(user)
-        tasks = list(tasks.filter(date=previous_day, ending_in_next_day=True)) + list(tasks.filter(date=task_date))
+        if current_task_id:
+            tasks = self.none().union(tasks.filter(date=previous_day, ending_in_next_day=True), tasks.filter(date=task_date).exclude(id=current_task_id))
+        else:
+            tasks = self.none().union(tasks.filter(date=previous_day, ending_in_next_day=True), tasks.filter(date=task_date))
 
         current_task_start = datetime(
             year=task_date.year,
@@ -165,13 +222,13 @@ class TasksManager(models.Manager):
                 )
 
             if(
-                    (task_start <= current_task_start <= task_end)
+                    (task_start < current_task_start < task_end)
                     or
-                    (task_start <= current_task_end <= task_end)
+                    (task_start < current_task_end <= task_end)
                     or
-                    (current_task_start <= task_start <= current_task_end)
+                    (current_task_start < task_start < current_task_end)
                     or
-                    (current_task_start <= task_end <= current_task_end)
+                    (current_task_start < task_end <= current_task_end)
             ):
                 return False, task
 
@@ -191,19 +248,94 @@ class Tasks(models.Model):
 
     objects = TasksManager()
 
+    original_project = None
+    original_activity = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.activity:
+            self.original_activity = self.activity
+        if self.project:
+            self.original_project = self.project
+
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
         if self.end < self.start:
             self.ending_in_next_day = True
+
+        start_datetime = datetime(
+            year=self.date.year,
+            month=self.date.month,
+            day=self.date.day,
+            hour=self.start.hour,
+            minute=self.start.minute,
+            second=self.start.second
+        )
+        if self.ending_in_next_day:
+            end_datetime = datetime(
+                year=self.date.year,
+                month=self.date.month,
+                day=self.date.day + 1,
+                hour=self.end.hour,
+                minute=self.end.minute,
+                second=self.end.second
+            )
+        else:
+            end_datetime = datetime(
+                year=self.date.year,
+                month=self.date.month,
+                day=self.date.day,
+                hour=self.end.hour,
+                minute=self.end.minute,
+                second=self.end.second
+            )
+
+        duration_timedelta = end_datetime - start_datetime
+        hour = int(str(duration_timedelta).split(':')[0])
+        minute = int(str(duration_timedelta).split(':')[1])
+        second = int(str(duration_timedelta).split(':')[2])
+        self.duration = time(
+            hour=hour,
+            minute=minute,
+            second=second,
+        )
+
         super().save(*args, **kwargs)
         if self.project:
             self.project.calculate_total_time()
+
+        if self.project != self.original_project:
+            if self.original_project:
+                self.original_project.calculate_total_time()
+            self.original_project = self.project
+
         if self.activity:
             self.activity.calculate_total_time()
 
+        if self.activity != self.original_activity:
+            if self.original_activity:
+                self.original_activity.calculate_total_time()
+            self.original_activity = self.activity
+
+    def delete(self, *args, **kwargs):
+        project = None
+        activity = None
+        if self.project:
+            project = self.project
+        if self.activity:
+            activity = self.activity
+
+        super().delete(*args, **kwargs)
+
+        if project:
+            project.calculate_total_time()
+        if activity:
+            activity.calculate_total_time()
+
     class Meta:
-        ordering = ['-date', '-end']
+        ordering = ['-date', '-start']
         verbose_name = _('Задача')
         verbose_name_plural = _('Задачи')
