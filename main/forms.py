@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 
 from .models import Activities, Projects, Tasks
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 class DivErrorList(ErrorList):
 
@@ -60,9 +60,14 @@ class ProjectsForm(forms.ModelForm):
                 'placeholder': self.fields[field_name].label,
             })
 
+        self.fields['color'].widget = forms.TextInput(attrs={
+            'type': 'color',
+            'class': 'form-control form-control-lg form-control-color',
+        })
+
     class Meta:
         model = Projects
-        fields = ['title', 'activity']
+        fields = ['title', 'color', 'activity']
 
 class ChangeProjectForm(forms.ModelForm):
 
@@ -80,9 +85,14 @@ class ChangeProjectForm(forms.ModelForm):
                 'placeholder': self.fields[field_name].label,
             })
 
+        self.fields['color'].widget = forms.TextInput(attrs={
+            'type': 'color',
+            'class': 'form-control form-control-lg form-control-color',
+        })
+
     class Meta:
         model = Projects
-        fields = ['title', 'status', 'activity']
+        fields = ['title', 'color', 'status', 'activity']
 
 class TasksForm(forms.ModelForm):
 
@@ -104,7 +114,7 @@ class TasksForm(forms.ModelForm):
         self.fields['date'].widget.input_type = 'date'
 
         self.fields['activity'].queryset = Activities.objects.activities(user=user)
-        self.fields['project'].queryset = Projects.objects.projects(user=user)
+        self.fields['project'].queryset = Projects.objects.projects(user=user).filter(finished=None)
         
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({

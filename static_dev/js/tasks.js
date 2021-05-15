@@ -102,6 +102,7 @@ async function add_task (event) {
         }
     } else {
         insert_tr_in_tasks_table(result);
+        transform_add_task_form(result);
     }
 }
 
@@ -143,6 +144,18 @@ function insert_tr_in_tasks_table (data) {
     );
 
     tasks_table_tbody.prepend(new_tr);
+}
+
+function transform_add_task_form(data) {
+    let title_input = add_task_form.elements.title;
+    let start_input = add_task_form.elements.start;
+    let duration_input = add_task_form.elements.duration;
+
+    title_input.value = '';
+    start_input.value = data['end'].slice(0, -3);
+
+    let change_event = new Event('change', {bubbles: true, cancelable: true});
+    duration_input.dispatchEvent(change_event);
 }
 
 function create_td (content) {

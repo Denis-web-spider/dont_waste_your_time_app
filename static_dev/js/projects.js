@@ -38,6 +38,10 @@ async function add_project (event) {
         }
     } else {
         insert_tr_in_projects_table(result);
+
+        add_project_form.elements.title.value = '';
+        add_project_form.elements.color.value = '#000000';
+        add_project_form.elements.activity.selectedIndex = 0;
     }
 }
 
@@ -49,11 +53,21 @@ function insert_tr_in_projects_table (data) {
     tr.setAttribute('data-activity', data.activity);
     tr.setAttribute('data-status', data.status);
     tr.setAttribute('data-title', data.title);
+    tr.setAttribute('data-color', data.color);
     tr.setAttribute('data-bs-toggle', 'modal');
     tr.setAttribute('data-bs-target', '#project-modal');
 
+    let color_square_div = document.createElement('div');
+    color_square_div.classList.add('color-square');
+    color_square_div.style.backgroundColor = data.color;
+    let color_td = create_td('');
+    color_td.append(color_square_div);
+
     tr.append(
         create_td(data.title)
+    );
+    tr.append(
+        color_td
     );
     tr.append(
         create_td(data.status)
@@ -113,6 +127,7 @@ function show_change_modal (event) {
     let modal_form = project_modal.querySelector('form');
 
     modal_form.elements.title.value = target.dataset.title;
+    modal_form.elements.color.value = target.dataset.color;
     modal_form.elements.project_id.value = target.dataset.project_id;
 
     for (let option of modal_form.elements.status.options) {
@@ -225,15 +240,17 @@ async function patch_project () {
 
 function patch_tr(tr, data) {
     tr.setAttribute('data-title', data.title);
+    tr.setAttribute('data-color', data.color);
     tr.setAttribute('data-activity', data.activity);
     tr.setAttribute('data-status', data.status);
     let td_list = tr.querySelectorAll('td');
 
     td_list[0].textContent = data.title;
-    td_list[1].textContent = data.status;
-    td_list[2].textContent = data.activity;
-    td_list[4].textContent = datetime_format(data.created);
-    td_list[5].textContent = datetime_format(data.finished);
+    td_list[1].querySelector('div[class=color-square]').style.backgroundColor = data.color;
+    td_list[2].textContent = data.status;
+    td_list[3].textContent = data.activity;
+    td_list[5].textContent = datetime_format(data.created);
+    td_list[6].textContent = datetime_format(data.finished);
 }
 
 function close_project_modal () {

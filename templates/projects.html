@@ -34,8 +34,11 @@
 
         <form class="row activities-form form-inline" name="add_project">
             {% csrf_token %}
-            <div class="col-lg-8 form-group">
+            <div class="col-lg-7 form-group">
                 {{ form.title }}
+            </div>
+            <div class="col-lg-1 form-group">
+                {{ form.color }}
             </div>
             <div class="col-lg-2 form-group">
                 {{ form.activity }}
@@ -83,6 +86,15 @@
                                     {{ change_form.status }}
                                 </div>
                             </div>
+
+                            <div class="row mb-3">
+                                <label for="{{ change_form.color.id_form_label }}" class="col-sm-4 col-form-label">
+                                    {{ change_form.color.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    {{ change_form.color }}
+                                </div>
+                            </div>
                             <input type="hidden" name="project_id" value="">
                         </form>
                     </div>
@@ -107,11 +119,15 @@
                     <tr data-project_id="{{ project.id }}"
                         data-activity="{{ project.activity }}"
                         data-title="{{ project.title }}"
+                        data-color="{{ project.color }}"
                         data-status="{{ project.status }}"
                         data-bs-toggle="modal"
                         data-bs-target="#project-modal"
                     >
                         <td>{{ project.title }}</td>
+                        <td>
+                            <div class="color-square" style="background-color: {{ project.color }};"></div>
+                        </td>
                         <td>{{ project.status|status }}</td>
                         <td>
                             {% if project.activity %}

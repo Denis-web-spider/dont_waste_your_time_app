@@ -35,7 +35,7 @@ class ActivitiesManager(models.Manager):
 @deconstructible
 class Activities(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('Название активности'))
-    color = models.CharField(max_length=7, verbose_name=_('Цвет'))
+    color = models.CharField(default='#000000', max_length=7, verbose_name=_('Цвет'))
     parent = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE, related_name='childs', verbose_name=_('Родитель'))
     total_time = models.DurationField(default=timedelta(), verbose_name=_('Потрачено времени'))
     is_parent = models.BooleanField(default=False, verbose_name=_('Является родителем'))
@@ -113,6 +113,7 @@ class Projects(models.Model):
     ]
 
     title = models.CharField(max_length=255, verbose_name=_('Название проекта'))
+    color = models.CharField(default='#000000', max_length=7, verbose_name=_('Цвет'))
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=IN_PROGRESS, verbose_name=_('Статус'))
     activity = models.ForeignKey(Activities, on_delete=models.CASCADE, verbose_name=_('Вид деятельности'), blank=True, null=True)
     total_time = models.DurationField(default=timedelta(), verbose_name=_('Потрачено времени'))

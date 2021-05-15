@@ -41,6 +41,10 @@ async function add_activity (event) {
         update_parents_choices(result);
         insert_tr_in_activities_table(result);
         update_activities_html_list(result);
+
+        add_activity_form.elements.title.value = '';
+        add_activity_form.elements.color.value = '#000000';
+        add_activity_form.elements.parent.selectedIndex = 0;
     }
 }
 

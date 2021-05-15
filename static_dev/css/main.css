@@ -272,6 +272,9 @@ p.blink.mah span {
 .main-content .modal-dialog {
     max-width: 700px;
 }
+.main-content table {
+    font-size: 16px;
+}
 
 /* user account */
 .user-profile-avatar {
